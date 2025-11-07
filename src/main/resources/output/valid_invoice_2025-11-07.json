@@ -1,0 +1,1 @@
+"[\n  {\n    \"invoiceId\": \"INV001\",\n    \"customerName\": \"John Doe\",\n    \"invoiceDate\": \"2025-10-25\",\n    \"dueDate\": \"2025-11-05\",\n    \"amount\": 1200.5,\n    \"currency\": \"USD\",\n    \"status\": \"Pending\"\n  }\n]"

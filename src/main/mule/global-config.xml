@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+	<file:config name="File_Config" doc:name="File Config" doc:id="d2179546-868e-424e-a99e-fe6f2bb9f2d3" >
+		<file:connection workingDir="C:\Users\GOVIND\AnypointStudio\personal-workspace\cc-invoice-validator-v2\src\main\resources\output" />
+	</file:config>
+	</mule>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd 
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+	<flow name="invoice-validation-flow" doc:id="37748e0a-90fc-484f-bb66-49aec06907aa" >
+		<scheduler doc:name="Every Day" doc:id="209e70e6-8d22-4b30-bea7-9c3e091fc2f6" >
+			<scheduling-strategy >
+				<fixed-frequency frequency="1" timeUnit="DAYS"/>
+			</scheduling-strategy>
+		</scheduler>
+		<logger level="INFO" doc:name="INFO : START" doc:id="d67c146e-18b1-47a0-8f7a-4ff82928020a" message='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;    appName: app.name,&#10;    flowName : flow.name,&#10;    position: "Flow Start",&#10;    message: "Invoice Validation Started",&#10;    correlationId: correlationId&#10;}]'/>
+		<ee:transform doc:name="JSON data">
+			<ee:message>
+				<ee:set-payload
+					resource="dwl/generate-json-data.dwl" />
+			</ee:message>
+		</ee:transform>
+		<ee:transform doc:name="Validate Invoice in Single Script">
+			<ee:message>
+				<ee:set-payload
+					resource="dwl/validation-rule.dwl" />
+			</ee:message>
+		</ee:transform>
+		<file:write doc:name="Valid Invoices" doc:id="fa1863ff-8a3f-4c39-aa60-24df410d8dfc" config-ref="File_Config" path='#["valid_invoice_" ++ (now() as Date) ++ ".json"]'>
+			<file:content ><![CDATA[#[write(payload.validInvoices, "application/json")]]]></file:content>
+		</file:write>
+		<file:write doc:name="Invalid Invoices" doc:id="67e36418-c160-4dcf-a293-9ace77ce89c6" config-ref="File_Config" path='#["invalid_invoice_" ++ (now() as Date) ++ ".json"]'>
+			<file:content ><![CDATA[#[write(payload.invalidInvoices, "application/json")]]]></file:content>
+		</file:write>
+		<logger level="INFO" doc:name="INFO : END" doc:id="7a841969-bd38-4087-85a0-9ccfe008c6b8" message='#[%dw 2.0&#10;output application/json&#10;---&#10;{&#10;    appName: app.name,&#10;    flowName : flow.name,&#10;    position: "Flow End",&#10;    message: "Invoice Validated Against Rules",&#10;    summary: "Total: " ++ (sizeOf(payload.validInvoices) + sizeOf(payload.invalidInvoices))&#10;    ++ ", Valid: " ++ sizeOf(payload.validInvoices) ++ ", Invalid: " ++ sizeOf(payload.invalidInvoices),&#10;    correlationId: correlationId&#10;}]'/>
+	</flow></mule>
