@@ -93,13 +93,14 @@ jobs:
           server_port: 465
           username: ${{ secrets.GMAIL_USER }}
           password: ${{ secrets.GMAIL_APP_PASSWORD }}
-          subject: MuleSoft CI/CD Failure: OAuth Token Retrieval
+          subject: "MuleSoft CI/CD Failure: OAuth Token Retrieval"
           to: your.email@example.com
           from: ${{ secrets.GMAIL_USER }}
           content_type: text/plain
           body: |
             The MuleSoft CI/CD pipeline failed to retrieve the OAuth2 access token.
             Please check the GitHub Actions logs for more information.
+
 
   deploy:
     name: Deploy to CloudHub 2.0
