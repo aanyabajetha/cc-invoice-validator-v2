@@ -12,17 +12,17 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
-      - name: Set up JDK 8
+
+      - name: Set up JDK 8 with Maven cache
         uses: actions/setup-java@v4
         with:
           java-version: '8'
           distribution: 'temurin'
-      - name: Set up Maven
-        uses: actions/setup-maven@v3
-        with:
-          maven-version: '3.9.10'
+          cache: 'maven'
+
       - name: Build Mule Application
         run: mvn clean package -s settings.xml
+
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
@@ -41,17 +41,17 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: mule-app
+
       - name: Checkout Repository
         uses: actions/checkout@v4
-      - name: Set up JDK 8
+
+      - name: Set up JDK 8 with Maven cache
         uses: actions/setup-java@v4
         with:
           java-version: '8'
           distribution: 'temurin'
-      - name: Set up Maven
-        uses: actions/setup-maven@v3
-        with:
-          maven-version: '3.9.10'
+          cache: 'maven'
+
       - name: Publish to Anypoint Exchange
         run: mvn clean deploy -s settings.xml
 
@@ -64,6 +64,8 @@ jobs:
     env:
       CLIENT_ID: ${{ secrets.ANYPOINT_CLIENT_ID }}
       CLIENT_SECRET: ${{ secrets.ANYPOINT_CLIENT_SECRET }}
+      GMAIL_USER: ${{ secrets.GMAIL_USER }}
+      GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
     steps:
       - name: Get OAuth2 Token
         id: token
@@ -78,12 +80,26 @@ jobs:
           token=$(echo $response | jq -r '.access_token')
           if [ -z "$token" ] || [ "$token" == "null" ]; then
             echo "Failed to retrieve access token"
-            curl -X POST -H "Content-Type: application/json" \
-              -d '{"text":"MuleSoft CI/CD: Failed to retrieve OAuth2 token!"}' https://hooks.slack.com/services/YOUR/SLACK/WEBHOOK
             exit 1
           fi
           echo "Token retrieved successfully"
           echo "authToken=$token" >> $GITHUB_OUTPUT
+
+      - name: Send failure email notification
+        if: failure()
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          username: ${{ secrets.GMAIL_USER }}
+          password: ${{ secrets.GMAIL_APP_PASSWORD }}
+          subject: MuleSoft CI/CD Failure: OAuth Token Retrieval
+          to: your.email@example.com
+          from: ${{ secrets.GMAIL_USER }}
+          content_type: text/plain
+          body: |
+            The MuleSoft CI/CD pipeline failed to retrieve the OAuth2 access token.
+            Please check the GitHub Actions logs for more information.
 
   deploy:
     name: Deploy to CloudHub 2.0
@@ -103,17 +119,17 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: mule-app
+
       - name: Checkout Repository
         uses: actions/checkout@v4
-      - name: Set up JDK 8
+
+      - name: Set up JDK 8 with Maven cache
         uses: actions/setup-java@v4
         with:
           java-version: '8'
           distribution: 'temurin'
-      - name: Set up Maven
-        uses: actions/setup-maven@v3
-        with:
-          maven-version: '3.9.10'
+          cache: 'maven'
+
       - name: Deploy Mule Application
         run: |
           echo "Deploying ${APP_NAME} to CloudHub 2.0..."
